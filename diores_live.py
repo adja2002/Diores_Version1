@@ -3,7 +3,6 @@ import pickle
 import pandas as pd
 
 print("DIORES V2 - Prédicteur BAC Sénégal 2018-2024")
-print("Par Moussa THIOR - Master SIR 2025 - FST UCAD")
 print("="*60)
 
 # CHARGEMENT DES 3 MODÈLES (chemins corrigés pour ton PC)

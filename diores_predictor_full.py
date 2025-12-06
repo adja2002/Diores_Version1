@@ -25,19 +25,28 @@ class DioresPredictor(BaseEstimator, ClassifierMixin):
             X = pd.DataFrame([X])
         if not isinstance(X, pd.DataFrame):
             X = pd.DataFrame(X)
+        X = X.loc[:, ~X.columns.duplicated()]
 
         resultats = []
-        admissions = self.model_admi.predict(X)
+        expected_admi = getattr(self.model_admi, 'feature_names_in_', None)
+        X_admi = X.reindex(columns=expected_admi, fill_value=0) if expected_admi is not None else X
+        admissions = self.model_admi.predict(X_admi)
 
-        for i, est_admis in enumerate(admissions):  # ← "enumerate" corrigé (pas "enumeµrate")
+        for i, est_admis in enumerate(admissions):
             if est_admis == 0:
                 resultats.append({'admission': 'NON ADMIS', 'session': None, 'mention': None})
             else:
-                session_pred = self.model_session.predict(X.iloc[[i]])[0]
+                expected_sess = getattr(self.model_session, 'feature_names_in_', None)
+                Xi_sess = X.iloc[[i]]
+                Xi_sess = Xi_sess.reindex(columns=expected_sess, fill_value=0) if expected_sess is not None else Xi_sess
+                session_pred = self.model_session.predict(Xi_sess)[0]
                 if session_pred == 0:
                     resultats.append({'admission': 'AUTORISE', 'session': 'Deuxième Session', 'mention': None})
                 else:
-                    mention_pred = self.model_mention.predict(X.iloc[[i]])[0]
+                    expected_ment = getattr(self.model_mention, 'feature_names_in_', None)
+                    Xi_ment = X.iloc[[i]]
+                    Xi_ment = Xi_ment.reindex(columns=expected_ment, fill_value=0) if expected_ment is not None else Xi_ment
+                    mention_pred = self.model_mention.predict(Xi_ment)[0]
                     resultats.append({
                         'admission': 'PASSE',
                         'session': 'Première Session',
@@ -106,7 +115,7 @@ class DataFrameProcessor:
 # ===================== TEST COMPLET =====================
 if __name__ == "__main__":
     print("="*70)
-    print("DIORES V2 - Système d'orientation intelligent - Moussa THIOR 2025")
+    print("DIORES V2 - Système d'orientation intelligent")
     print("="*70)
 
     # Profil d'un bachelier S1 fort (exemple)
